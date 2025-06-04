@@ -19,6 +19,7 @@ This repo contains the complete step-by-step execution guide for deploying the c
 
 | Step | Description | Folder |
 |------|-------------|--------|
+| 🖥️ 0 | Run project locally using Docker Compose | [`run-locally/`](./run-locally) |
 | 1️⃣ | Backend setup for Terraform (S3 & DynamoDB) | [`terraform/backend`](./terraform/backend) |
 | 2️⃣ | Main Terraform for VPC and EKS provisioning | [`terraform/main`](./terraform/main) |
 | 3️⃣ | Kubeconfig configuration | [`scripts/`](./scripts) |
