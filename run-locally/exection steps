@@ -1,1 +1,71 @@
+Running the Project Locally Using Docker Compose
 
+1. Prerequisites
+- Check Docker Compose installation:
+  docker-compose -h
+
+- Check Git installation:
+  git --version
+
+- If Git is not installed:
+  sudo apt install git -y
+
+2. Clone the Project
+- Clone the repository:
+  git clone <project_url>
+
+- Navigate to the project folder:
+  cd ultimate-devops-project-demo
+
+- Check for docker-compose.yml:
+  ls
+
+3. Run the Project
+- Start services:
+  docker-compose up
+
+- Run in detached mode:
+  docker-compose up -d
+
+4. Handle Disk Space Issues (EC2)
+- Check disk usage:
+  df -h
+
+- Increase volume size via AWS Console
+
+- Check storage blocks:
+  lsblk
+
+- Install growpart utility:
+  sudo yum install cloud-utils-growpart -y
+
+- Grow partition:
+  sudo growpart /dev/xvda 1
+
+- Resize filesystem:
+  sudo resize2fs /dev/xvda1   (for ext4)
+  sudo xfs_growfs /           (for xfs)
+
+- Clean up Docker:
+  docker rm $(docker ps -aq)
+  docker rmi $(docker images -q)
+  docker volume prune -f
+  docker network prune -f
+  docker builder prune -af
+  docker system prune -a --volumes -f
+
+- Delete container logs (optional):
+  sudo find /var/lib/docker/containers/ -type f -name "*.log" -delete
+
+5. Verify Running Containers
+- Check running containers:
+  docker ps
+
+6. Access the Project via Browser (EC2)
+- Update security groups (allow HTTP port 80 and others as needed)
+
+- Find public IP:
+  curl ifconfig.me
+
+- Open in browser:
+  http://<EC2_PUBLIC_IP>
