@@ -1,0 +1,58 @@
+Containerization of Go Microservice
+
+This guide outlines the process of containerizing a Go-based microservice using Docker’s multi-stage build technique for optimized builds and minimal final images.
+
+Stage 1: Build Image
+
+This stage compiles the Go application.
+
+1. Base Image
+Use golang:1.22-alpine as the base image to benefit from a minimal and efficient build environment.
+
+2. Working Directory
+Set the working directory to:
+/usr/src/app
+
+3. Cache Optimization
+Use build-time caching to accelerate the process:
+- Module dependencies: /go/pkg/mod
+- Build cache: /root/.cache/go-build
+
+4. Dependency Management
+- Copy go.mod and go.sum files into the container.
+- Run go mod download to fetch dependencies.
+
+5. Source Code
+- Copy the rest of the project files into the container.
+
+6. Build Command
+- Compile the binary:
+  go build -o product-catalog .
+
+Stage 2: Final Image
+
+This stage sets up the minimal container required to run the compiled application.
+
+1. Base Image
+Use alpine to keep the runtime image small and secure.
+
+2. Working Directory
+Set to:
+/usr/src/app
+
+3. File Copying
+- Copy ./products/ (supporting files or data).
+- Copy the product-catalog binary from the build stage.
+
+4. Environment Configuration
+- Set the runtime environment variable:
+  PRODUCT_CATALOG_PORT=8088
+
+5. Start Command
+- Run the microservice using:
+  ./product-catalog
+
+Key Takeaways:
+- Multi-stage builds help separate the build process from runtime execution.
+- Only essential files are included in the final image.
+- The resulting container is lightweight, production-ready, and secure.
