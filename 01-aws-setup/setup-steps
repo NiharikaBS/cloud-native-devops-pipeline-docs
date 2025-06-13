@@ -1,0 +1,100 @@
+# AWS + DevOps Onboarding Guide 
+
+=========================================================
+SECTION 1: IAM USER CREATION
+=========================================================
+
+1. Log in to the AWS Console using your root account.
+
+2. Navigate to the IAM service, and select "Users" from the left pane.
+
+3. Click "Add user".
+   - Set a username, such as "devops-user".
+   - Choose access types:
+     - Programmatic access (for CLI/API)
+     - Console access (for dashboard login)
+
+4. Set Permissions:
+   - Option 1: Attach existing policies directly (e.g., AdministratorAccess)
+   - Option 2: Add the user to a group (recommended)
+   - Option 3: Copy permissions from an existing user
+
+5. (Optional) Add tags:
+   - Example: Department = DevOps, Project = CloudInfra
+
+6. Review the configuration and create the user.
+
+7. Download and securely store the Access Key and Secret Access Key (if created).
+
+=========================================================
+SECTION 2: EC2 INSTANCE LAUNCH
+=========================================================
+
+1. Go to the EC2 dashboard in your AWS Console.
+
+2. Click "Launch Instance", give it a name.
+
+3. Select an Amazon Machine Image (AMI) — e.g., Ubuntu 22.04.
+
+4. Choose an instance type:
+   - For practice or light workloads: t2.micro (free-tier eligible)
+   - For more compute: t3.medium, t3.large, etc.
+
+5. Network settings:
+   - Keep the default VPC and subnet.
+   - Ensure "Auto-assign Public IP" is enabled.
+
+6. Storage:
+   - Default is 8 GB. Increase to 30 GB if you'll install tools like Docker or K8s.
+
+7. Security Group:
+   - Add a rule for SSH (port 22) for remote access.
+   - Add ports 80/443 if hosting web apps.
+
+8. Key Pair:
+   - Create a new RSA key pair and download the .pem file.
+   - Store the file securely (you’ll need it for SSH).
+
+9. Launch the instance.
+
+10. Connect via SSH:
+   - Set permissions: chmod 400 your-key.pem
+   - Connect: ssh -i your-key.pem ubuntu@<EC2_PUBLIC_IP>
+
+=========================================================
+SECTION 3: INSTALLATION LINKS
+=========================================================
+
+- Docker: https://docs.docker.com/engine/install/ubuntu/
+- kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
+- Terraform: https://developer.hashicorp.com/terraform/downloads
+
+Use these links for official, OS-specific installation guides.
+
+=========================================================
+SECTION 4: TROUBLESHOOTING TIPS
+=========================================================
+
+- SSH permission denied:
+  - Ensure `.pem` file permission is set to read-only: `chmod 400`
+  - Make sure you're using the correct default username (`ubuntu`, `ec2-user`, etc.)
+
+- Instance not reachable:
+  - Verify that the security group allows inbound traffic on port 22
+  - Public IP should be enabled. If not, stop → enable → relaunch the instance
+
+- Lost `.pem` file:
+  - There's no recovery. Stop instance → detach root volume → attach to a new instance → recover manually
+
+- Docker permission issues:
+  - If `docker` commands require `sudo`, consider adding your user to the `docker` group:
+    `sudo usermod -aG docker $USER` and reboot
+
+- High EC2 costs:
+  - Terminate unused instances
+  - Use AWS Budgets to monitor spending
+  - Use t-series or spot instances for testing purposes
+
+=========================================================
+END OF GUIDE
+=========================================================
