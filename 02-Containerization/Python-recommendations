@@ -1,0 +1,39 @@
+PYTHON MICROSERVICE CONTAINERIZATION
+
+Description:
+This process explains how to containerize a Python-based microservice using Docker
+and enable OpenTelemetry support.
+
+STEPS:
+
+1. BASE IMAGE
+   - Uses: python:3.12-slim-bookworm
+   - A minimal, secure Python base image to reduce final container size.
+
+2. SET WORKING DIRECTORY
+   - /usr/src/app
+   - All files will be copied and executed from here.
+
+3. INSTALL DEPENDENCIES
+   - Copy requirements.txt
+   - Run:
+     pip install --upgrade pip
+     pip install -r requirements.txt
+
+4. COPY SOURCE CODE
+   - Copy all remaining files into the working directory.
+
+5. ENABLE OPEN TELEMETRY
+   - Run:
+     opentelemetry-bootstrap -a install
+
+6. SET ENVIRONMENT VARIABLE
+   - RECOMMENDATION_PORT=1010
+
+7. START THE SERVICE
+   - Entrypoint:
+     python recommendation_server.py
+
+NOTES:
+- This image supports distributed tracing using OpenTelemetry.
+- Keeps the container lightweight and production-ready.

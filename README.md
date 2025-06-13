@@ -153,9 +153,9 @@ classDef typescript fill:#e98516,color:black;
 
 ---
 
-## 📸 Screenshots (Optional)
+## 📸 Screenshots 
 
-_Add screenshots for:_
+
 - Argo CD UI
 - GitHub Actions run
 - Services in AWS/EKS
