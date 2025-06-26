@@ -1,1 +1,57 @@
+Kubernetes - Services
+=====================
+
+1. Basic Structure of a Service
+-------------------------------
+- API Version: Always begins with `apiVersion: v1`.
+- Kind: Defined as `kind: Service`.
+- Metadata:
+  - Name: Unique identifier for the service.
+  - Labels: Used for categorization and management.
+
+2. Service Specification (spec)
+-------------------------------
+- Type:
+  - ClusterIP: Default type, allows internal communication between services/pods.
+  - NodePort: Exposes the service on a static port across each cluster node.
+  - LoadBalancer: Exposes the service externally using a cloud provider’s load balancer.
+- Port:
+  - The exposed port that clients inside/outside the cluster use to connect.
+- TargetPort:
+  - The container’s port where the service routes traffic to.
+- Selector:
+  - Matches pods using labels (e.g., `app: currency-service`).
+  - Ensures that even if pod IPs change, services can still reach the correct pods.
+
+3. How Services Work with Pods
+------------------------------
+- Services use label selectors to dynamically discover and connect to the right pods.
+- As pods scale or restart (changing IPs), services still route traffic accurately.
+- The `targetPort` in a service must match the `containerPort` defined in the corresponding pod or deployment.
+
+4. Real-World Microservices Example
+-----------------------------------
+- A `currency` microservice:
+  - Deployment defines: `containerPort: 8000`
+  - Service defines:
+    - `port: 80`
+    - `targetPort: 8000`
+    - `selector: app: currency`
+  - Result: Requests to port 80 on the service are forwarded to port 8000 in the container.
+
+5. Key Takeaways
+----------------
+- **Selector**: Essential for matching the service to the correct pods.
+- **Port & TargetPort**: Must be aligned to ensure smooth traffic forwarding.
+- **Type**: Choose based on exposure needs:
+  - Internal (ClusterIP)
+  - External via static port (NodePort)
+  - External via cloud load balancer (LoadBalancer)
+
+
+Summary
+=======
+Kubernetes Services act as stable frontends to dynamic, ephemeral pods.  
+They provide load balancing, service discovery, and abstraction from pod IPs.  
+Correct configuration ensures reliable inter-service communication and access.
 
