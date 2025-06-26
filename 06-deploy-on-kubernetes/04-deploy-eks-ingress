@@ -1,0 +1,135 @@
+Using ingress for exposing frontend
+===========================================
+
+This guide covers deploying microservices to an Amazon EKS cluster and exposing the frontend using AWS ALB Ingress Controller.
+
+📌 Prerequisites
+---------------
+- EKS cluster provisioned and accessible (`kubectl` configured)
+- EC2 bastion instance with `eksctl`, `kubectl`, `helm` installed
+- AWS CLI configured with admin permissions
+- VPC ID for your EKS cluster
+- Terraform/eksctl used to create the cluster
+
+🚀 Deployment Overview
+----------------------
+
+1. Deploy 20 microservices using Kubernetes manifests
+2. Install AWS ALB Ingress Controller
+3. Expose frontend service via Ingress using a dummy domain
+
+🔧 Step 1: Deploy Microservices
+------------------------------
+Apply the complete deployment file:
+```bash
+kubectl apply -f complete-deploy.yaml
+
+Step 2: Install AWS ALB Ingress Controller
+==========================================
+
+Verify Pods and Services
+-------------------------
+Run the following to check that all pods and services are running:
+
+kubectl get pods
+kubectl get svc
+
+1. Associate IAM OIDC Provider
+------------------------------
+export CLUSTER_NAME=my-cluster
+
+eksctl utils associate-iam-oidc-provider \
+  --cluster $CLUSTER_NAME \
+  --approve
+
+2. Create IAM Policy and Service Account
+----------------------------------------
+# Download the AWS Load Balancer Controller IAM policy:
+curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+
+# Create the IAM policy:
+aws iam create-policy \
+  --policy-name AWSLoadBalancerControllerIAMPolicy \
+  --policy-document file://iam-policy.json
+
+# Create IAM role and bind it to a Kubernetes service account:
+eksctl create iamserviceaccount \
+  --cluster $CLUSTER_NAME \
+  --namespace kube-system \
+  --name aws-load-balancer-controller \
+  --attach-policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/AWSLoadBalancerControllerIAMPolicy \
+  --override-existing-serviceaccounts \
+  --approve
+
+(Replace <ACCOUNT_ID> with your actual AWS account ID)
+
+3. Install AWS ALB Ingress Controller using Helm
+------------------------------------------------
+# Add the EKS charts Helm repo:
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update
+
+# Install the ALB Ingress Controller:
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  --set clusterName=$CLUSTER_NAME \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller \
+  --set region=us-west-2 \
+  --set vpcId=<YOUR_VPC_ID> \
+  -n kube-system
+
+(Replace <YOUR_VPC_ID> with your actual VPC ID)
+
+4. Verify Installation
+----------------------
+kubectl get pods -n kube-system
+
+Step 3: Configure Ingress for Frontend
+======================================
+
+1. Convert Frontend Service to NodePort
+---------------------------------------
+Edit the service:
+kubectl edit svc opentelemetry-demo-frontend-proxy
+
+Change:
+  type: LoadBalancer
+To:
+  type: NodePort
+
+2. Create ingress.yaml
+----------------------
+Create a new file named ingress.yaml and write yaml file.
+
+3. Apply the Ingress Resource
+-----------------------------
+kubectl apply -f ingress.yaml
+kubectl get ingress
+
+4. Map Dummy Domain (Local DNS)
+-------------------------------
+Edit your local hosts file:
+
+Linux/macOS:
+  /etc/hosts
+
+Windows:
+  C:\Windows\System32\drivers\etc\hosts
+
+Add this line:
+<EXTERNAL-ALB-IP> example.com
+
+(Replace <EXTERNAL-ALB-IP> with the ALB’s public IP or DNS name)
+
+5. Access the Application
+--------------------------
+Open your browser and go to:
+http://example.com
+
+
+Key Takeaways
+=============
+✅ Simplified external access using one ALB for all services  
+✅ Cost-effective compared to provisioning multiple LoadBalancers  
+✅ Declarative control using Kubernetes manifests  
+✅ Enables domain-based routing with Ingress
