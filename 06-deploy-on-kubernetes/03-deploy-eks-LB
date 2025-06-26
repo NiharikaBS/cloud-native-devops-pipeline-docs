@@ -1,0 +1,65 @@
+Switching to LoadBalancer Service Type
+======================================
+
+Step-by-Step: Changing a Service to LoadBalancer
+------------------------------------------------
+1. Locate the frontend service:
+   kubectl get svc | grep frontend
+
+2. Edit the service:
+   kubectl edit svc frontend
+
+3. In the YAML spec, change:
+   spec:
+     type: ClusterIP
+   To:
+     type: LoadBalancer
+
+4. Save and exit the editor.
+
+5. Wait ~5 minutes while the Kubernetes API Server communicates with the Cloud Controller Manager (CCM) to provision a cloud Load Balancer (e.g., AWS ELB).
+
+6. Verify in AWS Console (EC2 > Load Balancers) that a new ELB has been created in the correct region (e.g., `us-west-2`).
+
+7. Access the application:
+   - Use the public Load Balancer DNS or IP on the assigned port (e.g., http://<elb-dns>:8080).
+
+8. Functional Verification:
+   - Add products to cart
+   - Switch currencies
+   - Place an order
+   - Confirm cart is emptied
+   This validates end-to-end microservice integration (Frontend → Cart → Checkout → Shipping).
+
+Limitations of LoadBalancer Service Type
+========================================
+
+1. ❌ Lack of Declarative Configuration
+   - AWS Load Balancer settings (like HTTP/HTTPS, listeners, etc.) must be managed manually in the AWS Console.
+   - No YAML or version control support for changes → harder to track and reproduce.
+
+2. 💸 Cost Inefficiency
+   - Each exposed service requires its own load balancer.
+   - For 10 services, this means 10 separate AWS ELBs → high cost in production.
+
+3. 🚫 Limited Flexibility
+   - LoadBalancer type is cloud-dependent (via CCM).
+   - Can't use custom or open-source load balancers like Nginx, Traefik, or Envoy.
+
+4. 🌐 Incompatible with Local or Non-Cloud Environments
+   - Doesn’t work in environments like Minikube, KIND, or any Kubernetes cluster without a Cloud Controller Manager.
+   - Reduces portability of your deployment configuration.
+
+Why Use LoadBalancer at All?
+============================
+✅ Pros:
+- Extremely simple to set up (`type: LoadBalancer`)
+- No extra YAML files or Ingress controllers required
+- Great for quick demos or when exposing only 1-2 services externally
+
+Next Steps
+==========
+✔ Move toward using an Ingress Controller:
+- Share a single Load Balancer among multiple services
+- Enable HTTPS, path-based or host-based routing
+- Declaratively manage traffic rules in version-controlled YAML files
