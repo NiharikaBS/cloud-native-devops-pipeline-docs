@@ -1,0 +1,96 @@
+Deploying Microservices on EKS Cluster with Kubernetes
+=======================================================
+
+This guide outlines the steps to deploy a multi-microservice project on an EKS (Elastic Kubernetes Service) cluster using Kubernetes.
+
+🔧 Overview
+-----------
+- Deploy a project consisting of 20 microservices to an EKS cluster.
+- Manage Kubernetes resource files (YAML).
+- Check service discovery, auto-scaling, self-healing, and inter-service communication.
+
+📌 Prerequisites
+----------------
+- EKS cluster setup and configured.
+- kubectl installed and authenticated with the correct context.
+- Kubernetes resource files (YAMLs) available.
+
+🚀 Deployment Steps
+-------------------
+
+1. Verify Cluster Connection
+----------------------------
+Run the following to confirm you're connected to the EKS cluster:
+
+    kubectl config current-context
+    kubectl get all --namespace=default
+
+✅ Confirm:
+- You are connected to the EKS cluster (not Minikube).
+- There are no pre-existing deployments or services in the target namespace (e.g., default).
+
+2. Create Service Account
+-------------------------
+Apply the shared service account for all microservices:
+
+    kubectl apply -f service-account.yaml
+    kubectl get sa
+
+✅ A `ServiceAccount` named `opentelemetry-demo` is created and used by all microservices.
+
+3. Deploy Microservices
+-----------------------
+Deploy all microservices using a combined YAML file:
+
+    kubectl apply -f complete-deploy.yaml
+
+✅ `complete-deploy.yaml` includes all deployments and services for 20 microservices.
+
+4. Verify Pod Status
+--------------------
+Check if all pods are running:
+
+    kubectl get pods
+
+✅ Ensure all pods are in the `Running` state.
+Investigate and fix any `Pending` or `Failed` pods before proceeding.
+
+5. Verify Services
+------------------
+List all services to confirm deployment:
+
+    kubectl get svc
+
+✅ All service resources should be listed and accessible within the cluster.
+
+🔍 Service Discovery
+--------------------
+Kubernetes supports microservice communication using:
+
+1. Environment variables
+2. ConfigMaps
+
+📌 Example:  
+The `shipping` service communicates with the `code` service using the service name via an environment variable or a config map.
+
+🌐 Accessing the Application
+----------------------------
+Find the frontend service:
+
+    kubectl get svc | grep frontend-proxy
+
+- If the IP is private (e.g., 172.x.x.x), it's inaccessible outside the VPC.
+- EKS nodes are usually deployed in a private VPC, isolating them from public access.
+
+📁 Files Used
+-------------
+- `service-account.yaml` — Creates a shared service account.
+- `complete-deploy.yaml` — Contains all deployments and services for 20 microservices.
+
+Key Takeaways
+=============
+
+1. Verified EKS cluster context ensures you're deploying to the correct environment, preventing accidental changes to local (e.g., Minikube) or other clusters.
+2. Using a shared ServiceAccount improves security and simplifies RBAC management across all microservices.
+3. Deploying all services via a single YAML file (`complete-deploy.yaml`) boosts efficiency, reduces errors, and ensures consistent configuration.
+4. Kubernetes-native service discovery using environment variables and ConfigMaps enables scalable, reliable communication between microservices without manual networking setup.
