@@ -129,7 +129,7 @@ http://example.com
 
 Key Takeaways
 =============
-✅ Simplified external access using one ALB for all services  
+✅ Simplified external access using one Ingress-backed ALB for all services  
 ✅ Cost-effective compared to provisioning multiple LoadBalancers  
 ✅ Declarative control using Kubernetes manifests  
 ✅ Enables domain-based routing with Ingress
