@@ -1,0 +1,50 @@
+Understanding Kubernetes Service Types
+======================================
+
+1. NodePort
+-----------
+• Exposes the service on each Node’s IP at a static port within the range 30000–32767.
+• Access Format: http://<Node-IP>:<NodePort>
+• Allows access from within the VPC (e.g., from EC2 or other internal services).
+• Kubernetes routes traffic using iptables and kube-proxy.
+• Each service gets a unique NodePort (e.g., frontend → 32000, cart-service → 32001).
+• Limitation: Cannot be accessed directly from outside the VPC.
+
+2. LoadBalancer
+---------------
+• Exposes the service externally using a cloud provider’s load balancer (e.g., AWS ELB).
+• Kubernetes API Server communicates with the Cloud Controller Manager (CCM).
+• The CCM requests a load balancer from the cloud provider.
+• The load balancer is assigned a public IP or FQDN.
+• Once provisioned, `kubectl get svc` will show the `EXTERNAL-IP` field populated.
+• Access Format: http://<Public-IP> or http://<FQDN>
+• Ideal for public-facing services (e.g., frontend).
+• Limitations:
+  - Only works with cloud providers that support CCM.
+  - Not available on local clusters like Minikube, KIND, etc.
+
+3. Alternatives for Local Clusters
+----------------------------------
+If you're using Minikube, KIND, or local Kubernetes:
+
+• `kubectl port-forward` (for testing):
+  - Example: `kubectl port-forward svc/my-service 8080:80`
+  - Access via: http://localhost:8080
+
+• NodePort:
+  - Add `type: NodePort` in the service YAML.
+  - Access via: http://<Node-IP>:<NodePort>
+
+• Ingress Controller:
+  - Set up an ingress controller (e.g., Nginx) to manage HTTP(S) routing.
+  - Suitable for complex local dev environments.
+
+Summary Table
+=============
+
+Service Type   | Scope     | Who Can Access?                  | Use Case
+---------------|-----------|----------------------------------|--------------------------------------------
+ClusterIP      | Internal  | Only other services in cluster   | Internal communication (e.g., databases)
+NodePort       | VPC       | EC2 instances, services in VPC   | Internal testing or access within private net
+LoadBalancer   | External  | Anyone on the internet           | Public access to web apps, APIs, etc.
+
