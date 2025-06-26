@@ -1,0 +1,184 @@
+# LoadBalancer Service ---- ingress --- ingress controller 
+
+## 1. Understanding Ingress and Egress in Kubernetes Networking
+
+- **Ingress:** Refers to incoming traffic to an application or cluster.
+- **Egress:** Refers to outgoing traffic from an application or cluster.
+
+---
+
+## 2. What is Ingress in Kubernetes?
+
+- Kubernetes provides a resource type called **Ingress**, alongside other resources like Deployment, Service, ConfigMap, and Secret.
+- An **Ingress** resource defines rules to route incoming HTTP/HTTPS traffic to different services inside the cluster.
+- It acts as a smart router, handling domain-based and path-based routing.
+
+---
+
+## 3. Why Use Ingress Instead of LoadBalancer Service?
+
+### LoadBalancer Service Type
+
+- When you expose a service as type **LoadBalancer**, Kubernetes instructs the Cloud Controller Manager (CCM) to provision a cloud provider load balancer (e.g., AWS ELB or ALB).
+- This creates one load balancer per service.
+- External traffic accesses the service via the LoadBalancer’s DNS or IP.
+- **Limitations:**
+  - Public IPs/DNS are exposed and accessible by anyone, leading to security risks.
+  - Each service requires its own load balancer, which increases cost.
+  - Limited routing flexibility (no host/path based routing).
+  - Configuration is manual and less declarative.
+
+### Ingress Resource
+
+- Allows defining routing rules declaratively using YAML manifests.
+- The Ingress Controller reads these rules and creates/manages a **single** load balancer that routes traffic to multiple services.
+- Supports domain-based and path-based routing.
+- Restricts access based on domain names, improving security.
+- More cost-effective and flexible than multiple LoadBalancer services.
+
+---
+
+## 4. Advantages of Using Ingress Instead
+
+| Advantage             | Description                                                    |
+|-----------------------|----------------------------------------------------------------|
+| Declarative Config    | Define routing rules and TLS termination in YAML manifests.    |
+| Cost-Effective        | One load balancer routes traffic to multiple services.         |
+| Flexibility           | Supports multiple load balancer types and routing options.     |
+| Not tied to CCM       | Works in environments without Cloud Controller Manager (e.g., on-prem). |
+| Security              | Restricts access based on hostnames; hides raw IPs.            |
+
+---
+
+## 5. Advantages of LoadBalancer Service Type
+
+| Advantage              | Description                                                   |
+|------------------------|---------------------------------------------------------------|
+| Simplicity             | Quick to set up by changing service type to LoadBalancer.     |
+| Ease of Use            | No need to configure extra YAML or deploy an Ingress Controller.|
+| Good for quick tests   | Suitable for simple, single-service apps or internal testing. |
+
+---
+
+## 6. Real-World Use Case: Why Ingress Solves Security and Routing Problems
+
+- Organizations want users to access services via specific domain names (e.g., `myapp.example.com`), not IP addresses.
+- LoadBalancer service exposes the ALB’s IP/DNS publicly, which anyone can access, causing potential security concerns.
+- Ingress enforces domain-based routing and restricts access to only allowed hostnames.
+- Example:
+  - Access via `https://myapp.example.com` is allowed.
+  - Access via ALB IP or DNS directly is blocked.
+
+---
+
+## 7. How Ingress Works Compared to LoadBalancer
+
+| Feature                 | LoadBalancer Service         | Ingress Resource                   |
+|-------------------------|-----------------------------|----------------------------------|
+| Who creates Load Balancer?| Cloud Controller Manager (CCM) | Ingress Controller                |
+| Routing Flexibility      | None (one service, one LB)  | Supports path-based and host-based routing |
+| Cost                    | One LB per service          | One LB for multiple services      |
+| Security                | Exposes LB IP publicly       | Restricts access via domain rules |
+| Configuration           | Manual                      | Declarative via YAML manifests    |
+
+---
+
+## 8. When to Use Ingress?
+
+- Use Ingress for services that require **external access** with domain-based routing.
+- Internal microservices (e.g., Cart, Order, Payment) do not require Ingress; Service and Deployment are sufficient.
+- Ingress is essential for:
+  - Centralized SSL/TLS termination.
+  - Cost-effective multi-service routing.
+  - Fine-grained access control.
+
+---
+
+## 9. What is an Ingress Controller?
+
+- The **Ingress resource** only defines rules but does not enforce them.
+- The **Ingress Controller** is a pod that:
+  - Watches Ingress resources.
+  - Creates/manages external load balancers accordingly.
+  - Implements routing rules (host, path, TLS, etc.).
+- Kubernetes does not ship with a default Ingress Controller.
+- You must install one based on your load balancer choice.
+
+---
+
+## 10. Common Ingress Controllers
+
+| Load Balancer Type          | Corresponding Ingress Controller          |
+|----------------------------|------------------------------------------|
+| NGINX Load Balancer         | NGINX Ingress Controller                  |
+| Kong API Gateway            | Kong Ingress Controller                   |
+| Traefik                    | Traefik Ingress Controller                |
+| AWS ALB (Application Load Balancer) | AWS ALB Ingress Controller           |
+| F5 Load Balancer            | F5 Ingress Controller                     |
+
+---
+
+## 11. Deploying AWS ALB Ingress Controller on EKS
+
+- ALB Ingress Controller runs as a pod in EKS.
+- It provisions and manages AWS Application Load Balancers (ALB).
+- Requires an IAM role with policies linked via OIDC provider.
+- This setup allows the controller pod to create AWS resources securely.
+
+---
+
+## 12. Security Enhancement with Ingress
+
+- ALB created by the Ingress Controller only accepts traffic for allowed domains.
+- Attempts to access ALB directly via IP or DNS without the proper hostname are blocked.
+- Helps mitigate the risk of exposing services via raw IP addresses.
+
+---
+
+
+| Aspect               | LoadBalancer Service Type       | Ingress Resource                       |
+|----------------------|--------------------------------|--------------------------------------|
+| Ease of Setup        | Quick, minimal config           | Requires extra config and controller  |
+| Cost                 | Expensive at scale (many LBs)  | Cost-effective (single LB for all)    |
+| Security             | Less secure, exposes IP/DNS    | Domain-based access control            |
+| Routing Flexibility  | None                           | Path and hostname-based routing        |
+| Declarative Control  | Limited                       | Full declarative configuration         |
+
+---
+
+## Understanding IAM OIDC Provider for AWS ALB Ingress Controller
+
+- The AWS ALB Ingress Controller runs inside your EKS cluster as a Kubernetes pod.
+- To create and manage AWS resources (like Application Load Balancers) **outside** the cluster, the pod needs AWS permissions.
+- **Challenge:** How can a Kubernetes pod securely get AWS permissions without sharing long-lived AWS keys?
+
+### Solution: IAM OIDC Provider
+
+- EKS clusters support associating an **IAM OpenID Connect (OIDC) provider** with the cluster.
+- This enables the pod’s Kubernetes **service account** to assume an **IAM Role** via OIDC token authentication.
+- The IAM Role contains policies that grant permissions to the pod to create/manage AWS resources.
+
+### Steps to Configure IAM OIDC Provider
+
+ **Associate IAM OIDC Provider with EKS Cluster:**
+export CLUSTER_NAME=my-cluster
+eksctl utils associate-iam-oidc-provider --cluster $CLUSTER_NAME --approve
+
+### Create an IAM Policy for ALB Controller permissions:
+curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam-policy.json
+
+Create IAM Service Account bound to the policy:
+eksctl create iamserviceaccount \
+  --cluster $CLUSTER_NAME \
+  --namespace kube-system \
+  --name aws-load-balancer-controller \
+  --attach-policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/AWSLoadBalancerControllerIAMPolicy \
+  --override-existing-serviceaccounts \
+  --approve
+
+### Benefits:
+- Eliminates the need to manage AWS credentials manually inside pods.
+- Provides secure, fine-grained permissions scoped only to the ALB Ingress Controller pod.
+- Follows AWS best practices for Kubernetes pod IAM access.
+
