@@ -1,4 +1,4 @@
-# cloud-native-devops-pipeline-docs
+# Cloud-native-devops-pipeline-docs
 Complete DevOps execution steps for deploying the cloud-native-devops-pipeline project on AWS using Terraform, EKS, GitHub Actions, and Argo CD.
 
 # 📘 Documentation for cloud-native-devops-pipeline
