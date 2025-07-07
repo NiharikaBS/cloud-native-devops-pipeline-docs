@@ -1,0 +1,98 @@
+==============================
+CI/CD - Continuous Integration & Delivery
+==============================
+
+1. What is CI/CD?
+-----------------
+- CI/CD stands for:
+  - CI: Continuous Integration – Automates the build and testing process.
+  - CD: Continuous Delivery – Automates the deployment process.
+
+2. Why Do We Need CI/CD?
+------------------------
+Before CI/CD:
+-------------
+- Developers manually create pull requests (PRs).
+- Other developers review and approve them before merging.
+- Common problems:
+  - Code is not well tested.
+  - Security vulnerabilities exist.
+  - Old dependencies are still in use.
+  - Compilation or runtime errors.
+
+With CI/CD:
+-----------
+- Automates:
+  - Testing
+  - Security scanning
+  - Deployment
+- Benefits:
+  - Reduces manual effort.
+  - Ensures code quality.
+  - Saves time for developers and reviewers.
+
+3. CI Process (Continuous Integration)
+-------------------------------------
+Steps in CI Pipeline:
+---------------------
+1. Code Checkout:
+   - Pulls latest code from the repository.
+   - Runs on a new VM (e.g., GitHub Actions, Jenkins).
+
+2. Unit Testing:
+   - Runs automated tests on new code changes.
+
+3. Static Code Analysis:
+   - Detects syntax errors, unused variables, outdated dependencies.
+
+4. Build Process:
+   - Compiles and builds the application.
+
+5. Docker Image Creation:
+   - Packages app into a container image.
+
+6. Security Scanning:
+   - Scans code and Docker images for vulnerabilities.
+
+7. Push Docker Image:
+   - Uploads image to registry (e.g., Docker Hub, AWS ECR).
+
+8. Update Kubernetes Manifests:
+   - Updates deployment YAML file with the new image version.
+
+CI Benefits:
+------------
+- Automates validation of code.
+- Reduces need for manual code reviews.
+- Ensures only tested, secure code is merged.
+
+4. CD Process (Continuous Delivery)
+-----------------------------------
+Steps in CD Pipeline:
+---------------------
+1. Deploy to Kubernetes:
+   - Tools like ArgoCD or FluxCD automate deployments.
+
+2. Testing on Kubernetes:
+   - Developers/testers validate app post-deployment.
+   - Run integration and regression tests.
+
+CD Execution Options:
+---------------------
+- Triggered on:
+  - Every pull request
+  - Every commit
+  - Both (depending on team/org policy)
+
+CD Benefits:
+------------
+- Faster deployments with minimal human intervention.
+- Immediate feedback to developers.
+- Speeds up software delivery lifecycle.
+
+5. Note:
+-------------------
+- You don’t write CI/CD pipelines for every microservice.
+- Usually written only for services your team is responsible for.
+
+
