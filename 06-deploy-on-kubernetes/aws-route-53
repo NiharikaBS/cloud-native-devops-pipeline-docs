@@ -1,0 +1,69 @@
+==============================
+Notes on AWS Route 53 for Domain Setup
+==============================
+
+What is Route 53?
+-----------------
+Amazon Route 53 is AWS’s scalable and highly available Domain Name System (DNS) web service. It is used to:
+- Register new domains
+- Manage DNS records
+- Route end-user requests to infrastructure within and outside of AWS
+
+Key Concepts
+------------
+- Hosted Zone: A container for records related to a domain. When you create a hosted zone, Route 53 automatically creates Name Server (NS) and Start of Authority (SOA) records.
+- Alias Record: A special Route 53 record that maps your domain directly to AWS resources like Load Balancers without needing static IPs.
+- DNS Propagation: The time it takes for DNS changes (like updated name servers) to spread across the internet. It typically takes up to 48 hours but is often faster.
+
+Why Use Route 53 Instead of External DNS (e.g., GoDaddy)?
+---------------------------------------------------------
+Feature                            | Route 53        | External Providers
+---------------------------------|-----------------|-------------------
+Alias Records for AWS Services    | Yes             | No
+Auto IP Updates with AWS Load Balancer | Yes        | No (static only)
+Full AWS Integration             | Yes             | Limited
+Supports Root Domain + Subdomains | Yes             | CNAME only for subdomains
+
+Step-by-Step: Connecting Domain via Route 53
+--------------------------------------------
+1. Create a Hosted Zone in Route 53  
+   - Go to AWS Route 53 → Hosted Zones → "Create Hosted Zone"  
+   - Enter your domain (e.g., myproject.shop)  
+   - Select Public Hosted Zone  
+
+2. Create DNS Record  
+   - Inside the Hosted Zone → "Create Record"  
+   - Use type A – IPv4 address (Alias)  
+   - Choose "Alias to Application Load Balancer"  
+   - Select your region and ALB  
+   - Use name www.myproject.shop or root domain if supported  
+
+3. Update Domain Name Servers in Your Registrar (e.g., GoDaddy)  
+   - Copy the NS (Name Server) values from Route 53  
+   - Go to your domain registrar account  
+   - Replace the default name servers with those from Route 53  
+   - Save and confirm changes  
+
+Verifying DNS Setup
+-------------------
+- Use tools like:  
+  - https://www.whatsmydns.net/  
+  - nslookup yourdomain.com in the terminal  
+- You should see the domain resolving to your AWS Load Balancer IP or DNS  
+
+Best Practices
+--------------
+- Use Route 53 if your backend is hosted on AWS for tight integration and reliability  
+- Avoid using GoDaddy DNS to point directly to ALB DNS name — does not support dynamic IPs and can lead to failures  
+- Always use Alias Records for AWS services instead of CNAME or A records where possible  
+
+Common Troubleshooting Tips
+---------------------------
+- DNS not resolving? Check:  
+  - You saved the name server changes in your registrar  
+  - DNS propagation time (wait 2–48 hours)  
+  - Ingress hostname matches domain (e.g., www.myproject.shop)  
+- Use curl --resolve to test:  
+  curl --resolve www.myproject.shop:80:<ALB_IP> http://www.myproject.shop  
+
+
