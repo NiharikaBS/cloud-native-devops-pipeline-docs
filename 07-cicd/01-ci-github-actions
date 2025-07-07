@@ -1,1 +1,186 @@
+==============================
+GitHub Actions - CI Workflow Overview
+==============================
+
+1. implementing CI for the **Product Catalog Microservice**.
+
+==============================
+2. What is GitHub Actions?
+------------------------------
+- GitHub Actions is a Continuous Integration (CI) service built into GitHub.
+- It automates building, testing, and deploying applications directly from a GitHub repository.
+
+==============================
+3. Setting Up GitHub Actions
+------------------------------
+Folder structure:
+- Create a folder: `.github/workflows/`
+- Inside this folder, create a workflow file: `ci.yaml`
+
+==============================
+==============================
+4. Structure of a GitHub Actions Workflow
+==============================
+
+A. Name of the Workflow
+-----------------------
+name: Product Catalog CI
+
+B. Triggers
+-----------
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+This configuration triggers the workflow on:
+- Pull Requests (PRs) to the main branch
+- Direct commits to the main branch
+
+C. Jobs: CI Pipeline Steps
+--------------------------
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Up Golang
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      - name: Run Unit Tests
+        run: go test ./...
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run Static Code Analysis
+        run: golangci-lint run ./...
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t myrepo/product-catalog:latest .
+          docker push myrepo/product-catalog:latest
+
+  update-k8s:
+    runs-on: ubuntu-latest
+    needs: [build, static-analysis, docker]
+    steps:
+      - name: Update Kubernetes Manifest
+        run: ./update-k8s.sh
+
+==============================
+5. Executing the GitHub Actions Workflow
+==============================
+
+Step-by-step:
+
+Install VSCode Plugins:
+- GitHub Actions
+- YAML
+- Copilot (optional)
+
+Create GitHub Actions Workflow:
+- Folder: .github/workflows
+- File: ci.yaml
+
+Create a Branch & Make a Change:
+---------------------------------
+git checkout -b GitHub-CI-check
+# make changes to main.go or any file
+git add .
+git commit -a -m "chore: verify GitHub actions"
+git push origin GitHub-CI-check
+
+Create a Pull Request (PR) from the branch to main.
+
+Observe the CI Workflow:
+- GitHub will automatically trigger and execute the CI pipeline defined in ci.yaml on the PR.
+
+==============================
+6. Adding GitHub Secrets
+==============================
+
+Create a Personal Access Token (PAT):
+1. Go to GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Click "Generate new token (classic)"
+3. Choose a name, expiration period, and check the "repo" scope (or others if needed)
+4. Generate and copy the token (it won't be shown again)
+
+Add the PAT as a secret:
+1. Go to your GitHub repository → Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Name it appropriately (e.g., DOCKER_USERNAME, DOCKER_PASSWORD, TOKEN)
+4. Paste the token value and save
+==============================
+7. Verifying CI Execution
+==============================
+
+Run the CI workflow via Pull Request (PR).
+
+GitHub Actions will automatically:
+- Run unit tests
+- Perform static code analysis
+- Build and push the Docker image
+- Update Kubernetes manifests (only if all previous jobs succeed)
+
+==============================
+8. Ensuring Correct Job Execution Order
+==============================
+
+Use the `needs` keyword to enforce job dependencies and execution order:
+
+yaml
+needs: [build, static-analysis, docker]
+
+This ensures the `update-k8s` job only runs when:
+- Build passes
+- Static analysis passes
+- Docker image is built and pushed successfully
+
+Benefit:
+- Prevents premature manifest updates or PR closures when earlier jobs fail.
+
+==============================
+9. Moving to Continuous Deployment (Optional)
+==============================
+
+After successful CI, you can transition to full Continuous Deployment (CD):
+
+Tools:
+- ArgoCD or FluxCD
+
+Purpose:
+- Automatically detect updated Kubernetes manifests
+- Deploy new versions to your Kubernetes cluster
+
+Verify deployment:
+kubectl get deploy
+kubectl describe deploy product-catalog-service
+
+Check that the new Docker image version is reflected in the live deployment.
+
+
 
