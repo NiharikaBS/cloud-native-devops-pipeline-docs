@@ -1,0 +1,52 @@
+==============================
+68. [CD] - GitOps
+==============================
+
+GitOps & Continuous Deployment (CD) Notes
+
+What is GitOps?
+- GitOps automates CD by using Git as the single source of truth.
+- It continuously monitors version control systems (e.g., GitHub).
+- Deploys updated Kubernetes manifests automatically to target environments.
+- No manual intervention is required once CI completes.
+
+----------------------------------------
+CD Workflow with GitOps
+----------------------------------------
+1. CI Updates the Kubernetes Manifest
+   - Developer pushes code → CI builds image and updates manifest.
+2. GitOps Tool Monitors the Git Repository
+   - E.g., Argo CD detects updated manifests.
+3. Automated Deployment
+   - The GitOps tool applies changes to the Kubernetes cluster.
+4. Post-Deployment Verification
+   - Developers/QA validate changes in the live cluster.
+
+----------------------------------------
+Popular GitOps Tools for CD
+----------------------------------------
+- Argo CD (most popular)
+- Helm with scripting (Shell/Python)
+- Ansible
+
+----------------------------------------
+Why Use GitOps for CD?
+----------------------------------------
+
+✅ Automated Deployments
+- Ensures latest versions are deployed automatically.
+
+🔄 Reconciliation of State
+- Prevents unauthorized manual changes.
+- If someone manually changes a deployment (e.g., v1 → v2), GitOps will revert it to v1 unless the manifest is updated in Git.
+
+🔁 Continuous Syncing
+- Periodic polling (e.g., every 3 mins) for changes in Git.
+- Ensures cluster state matches the source of truth.
+
+🌎 Multi-Cluster Support
+- Centralized deployment management across multiple Kubernetes clusters using one repo.
+
+==============================
+End of GitOps CD Overview
+==============================
