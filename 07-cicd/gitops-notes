@@ -47,6 +47,4 @@ Why Use GitOps for CD?
 🌎 Multi-Cluster Support
 - Centralized deployment management across multiple Kubernetes clusters using one repo.
 
-==============================
-End of GitOps CD Overview
-==============================
+
