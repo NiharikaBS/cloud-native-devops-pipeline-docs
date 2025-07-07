@@ -1,1 +1,159 @@
+==============================
+ Install and Configure Argo CD
+==============================
 
+Argo CD Installation & Setup Guide
+
+----------------------------------------
+Step 1: Install Argo CD on Kubernetes Cluster
+----------------------------------------
+Go to EC2 Terminal & Run Commands
+
+Install via Kubernetes Manifests (Chosen Approach):
+
+1️⃣ Create a Namespace for Argo CD:
+kubectl create namespace argocd
+
+2️⃣ Deploy Argo CD using the official YAML manifest:
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+----------------------------------------
+Step 2: Verify Argo CD Installation
+----------------------------------------
+
+1️⃣ Check if Argo CD Pods are Running:
+kubectl get pods -n argocd
+
+2️⃣ Check Argo CD Services:
+kubectl get svc -n argocd
+
+- Focus on: `argocd-server` (hosts the Argo CD UI)
+
+----------------------------------------
+Step 3: Expose Argo CD UI
+----------------------------------------
+
+Option 1: LoadBalancer (Quickest)
+kubectl edit svc argocd-server -n argocd
+- Change type from ClusterIP to LoadBalancer
+- Save and exit
+
+Option 2: Ingress (Recommended for Production)
+- Use AWS ALB Ingress Controller
+- Create an Ingress resource for Argo CD
+
+----------------------------------------
+Step 4: Wait for Load Balancer to be Available
+----------------------------------------
+
+kubectl get svc -n argocd
+
+- Wait 1-2 mins for LoadBalancer IP
+- Access Argo CD UI using external IP
+
+----------------------------------------
+Step 5: Log into Argo CD
+----------------------------------------
+
+1️⃣ Get Admin Secret:
+kubectl get secrets -n argocd
+
+2️⃣ Extract Admin Password:
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode
+
+- Username: admin
+- Password: (output of command above)
+
+3️⃣ Access Argo CD UI in browser and login
+
+----------------------------------------
+Step 6: Understand Argo CD Architecture
+----------------------------------------
+
+- Tracks and syncs Git repo changes
+- Manages Kubernetes state via API
+- Hosts UI and handles auth (OIDC, RBAC)
+- Supports multi-cluster (hub-spoke model)
+- Argo CD can be installed in a centralized cluster
+- One Argo CD instance can manage multiple clusters
+
+==============================
+[CD] - Deploy the project using Argo CD
+==============================
+
+Configuring Argo CD to Deploy New Versions Automatically
+
+----------------------------------------
+Step 1: Create an Application in Argo CD
+----------------------------------------
+
+1️⃣ In Argo CD UI → Click “Create Application”
+
+2️⃣ Fill Application Details:
+- Name: product-catalog-service
+- Project: default
+- Sync Policy: 
+  - Manual or 
+  - Automatic (auto-deploy on Git change)
+
+🔹 Sync Interval: Default is 180s (3 min), configurable via ConfigMap
+
+----------------------------------------
+Step 2: Configure Git Repository Details
+----------------------------------------
+
+1️⃣ Enter Git Repository URL
+
+2️⃣ Select Deployment Method:
+- Plain YAML
+- Kustomize
+- Helm Charts
+
+3️⃣ Specify Path to YAMLs:
+Example:
+kubernetes/product-catalog
+
+4️⃣ Revision:
+- Use HEAD (latest commit)
+
+----------------------------------------
+Step 3: Select Deployment Cluster & Namespace
+----------------------------------------
+
+1️⃣ Cluster:
+- Same cluster: `kubernetes.default.svc`
+- For external: configure cluster access in Argo CD settings
+
+2️⃣ Namespace:
+- Choose correct namespace (e.g., default)
+
+----------------------------------------
+Step 4: Deploy & Monitor the Application
+----------------------------------------
+
+1️⃣ Click “Create” in UI
+
+2️⃣ Argo CD syncs and detects manifests (deploy.yaml, service.yaml, etc.)
+
+3️⃣ Monitor with:
+kubectl get pods -n default
+
+4️⃣ Check deployed image:
+kubectl get rs
+
+🔹 If new ReplicaSet is stuck:
+- Check resource limits
+- Use `kubectl edit rs <name>` to verify image
+
+----------------------------------------
+Step 5: Troubleshooting Deployment Issues
+----------------------------------------
+
+Scenario 1: Insufficient Resources
+- New pods not running
+- Scale up cluster or clean unused resources
+
+Scenario 2: App Fails to Start
+- Use:
+kubectl logs <pod-name>
+- Debug and inform development team
