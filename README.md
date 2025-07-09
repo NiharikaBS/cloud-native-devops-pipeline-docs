@@ -129,16 +129,17 @@ classDef typescript fill:#e98516,color:black;
 
 ## 📁 Execution steps 
 
-| Step | Description | Folder |
-|------|-------------|--------|
-| 🖥️ 0 | Run project locally using Docker Compose | [`run-locally/`](./run-locally) |
-| 1️⃣ | Backend setup for Terraform (S3 & DynamoDB) | [`terraform/backend`](./terraform/backend) |
-| 2️⃣ | Main Terraform for VPC and EKS provisioning | [`terraform/main`](./terraform/main) |
-| 3️⃣ | Kubeconfig configuration | [`scripts/`](./scripts) |
-| 4️⃣ | Kubernetes manifests & deployment files | [`k8s/`](./k8s) |
-| 5️⃣ | ALB Ingress Controller setup | [`alb-ingress/`](./alb-ingress) |
-| 6️⃣ | GitHub Actions workflows for CI | [`.github/workflows/`](./.github/workflows) |
-| 7️⃣ | Argo CD setup and deployment | [`argo-cd/`](./argo-cd) |
+| Step  | Description                                                  | Folder                                                                                                   |
+| ----- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| 1️⃣   | Set up AWS resources (S3 and DynamoDB) for Terraform backend | [`01-aws-setup/`](./01-aws-setup)                                                                        |
+| 2️⃣   | Containerize the microservices (Go, Python, Java)            | [`02-Containerization/`](./02-Containerization)                                                          |
+| 🖥️ 3 | Run the project locally using Docker Compose                 | [`03-run-locally/`](./03-run-locally)                                                                    |
+| 4️⃣   | Provision VPC, EKS, and other infrastructure using Terraform | [`04-terraform-vpc-s3-eks/`](./04-terraform-vpc-s3-eks)                                                  |
+| 5️⃣   | Configure `kubeconfig` to access the EKS cluster             | [`05-configure-eks-kubeconfig/`](./05-configure-eks-kubeconfig)                                          |
+| 6️⃣   | Deploy applications and services on Kubernetes               | [`06-deploy-on-kubernetes/`](./06-deploy-on-kubernetes)                                                  |
+| 7️⃣   | Set up and configure ALB Ingress Controller                  | [`06-deploy-on-kubernetes/05-lb-ingress-controller`](./06-deploy-on-kubernetes/05-lb-ingress-controller) |
+| 8️⃣   | Configure CI/CD pipelines using GitHub Actions and Argo CD   | [`07-cicd/`](./07-cicd)                                                                                  |
+
 
 ---
 
